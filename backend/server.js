@@ -1,29 +1,20 @@
-const weatherRoutes = require("./routes/weatherRoutes");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import weatherRoutes from "./routes/weatherRoutes.js";
 
-const locationRoutes = require("./routes/locationRoutes");
-
-
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+dotenv.config();
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
+
 app.use(express.json());
 
-app.use("/api", locationRoutes);
-app.use("/api", weatherRoutes);
+app.use("/api/weather", weatherRoutes);
 
-
-
-// Test route
-app.get("/", (req, res) => {
-  res.send("Backend server is running");
-});
-
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
 });

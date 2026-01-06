@@ -1,29 +1,27 @@
-function Forecast({ forecast }) {
-  if (!forecast || forecast.length === 0) return null;
+export const getForecast = async (req, res) => {
+  try {
+    const { city } = req.query;
 
- return (
-  <div className="flex justify-center mb-8">
-    <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg">
-      <input
-        type="text"
-        placeholder="Enter city name"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        className="border border-gray-300 rounded-2xl px-5 py-4 text-lg w-full
-                   focus:outline-none focus:ring-2 focus:ring-blue-400"
-      />
+    const response = await axios.get(
+      `https://api.weatherapi.com/v1/forecast.json`,
+      {
+        params: {
+          key: process.env.WEATHER_API_KEY,
+          q: city,
+          days: 5,
+        },
+      }
+    );
 
-      <button
-        onClick={handleSearch}
-        className="bg-blue-600 text-white px-8 py-4 rounded-2xl text-lg
-                   hover:bg-blue-700 transition"
-      >
-        Search
-      </button>
-    </div>
-  </div>
-);
+    const forecast = response.data.forecast.forecastday.map(day => ({
+      date: day.date,
+      minTemp: day.day.mintemp_c,
+      maxTemp: day.day.maxtemp_c,
+      condition: day.day.condition.text,
+    }));
 
-}
-
-export default Forecast;
+    res.json(forecast);
+  } catch (error) {
+    res.status(500).json({ error: "Forecast fetch failed" });
+  }
+};

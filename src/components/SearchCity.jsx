@@ -5,30 +5,20 @@ function SearchCity({ onSearch }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (city.trim()) {
-      onSearch(city);
-    }
+    if (!city.trim()) return;
+    onSearch(city);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        marginBottom: "30px",
-      }}
-    >
-      <div style={{ display: "flex", gap: "10px" }}>
-        <input
-          type="text"
-          placeholder="Enter city name"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          style={{ width: "260px" }}
-        />
-        <button type="submit">Search</button>
-      </div>
+    <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
+      <input
+        type="text"
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        placeholder="Enter city"
+        style={{ padding: "8px", marginRight: "10px" }}
+      />
+      <button type="submit">Search</button>
     </form>
   );
 }

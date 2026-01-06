@@ -1,33 +1,45 @@
-# 🌦️ Weather Information App (MERN)
+# 🌦️ Weather Information App (MERN + Open APIs)
 
-## 📌 Project Overview
-A MERN-based weather application that fetches real-time weather data using OpenWeather APIs.
-The backend securely handles API calls, while the frontend displays current weather and forecasts.
-
----
-
-## 🛠 Tech Stack
-- React (Vite)
-- Node.js
-- Express
-- OpenWeather APIs
+## 📌 Overview
+A MERN stack based Weather Information App that allows users to search for a city and view current weather conditions along with a 5–7 day forecast using OpenWeather APIs.
 
 ---
 
-## ✨ Features
+## 🧰 Tech Stack
+- Frontend: React (Vite)
+- Backend: Node.js, Express
+- APIs: OpenWeather Geocoding API, OpenWeather Weather API
+- Styling: CSS
+- Database: ❌ Not used
+- Authentication: ❌ Not used
+
+---
+
+## 🚀 Features
 - Search weather by city name
-- City → Latitude/Longitude resolution
-- Current weather details
-- 5–7 day weather forecast
-- Weather summary logic (backend)
-- Error handling & loading state
+- Convert city name to latitude & longitude (backend)
+- Display current weather:
+  - Temperature (°C)
+  - Weather condition
+  - Humidity
+  - Wind speed
+- Display 5–7 day weather forecast
+- Weather summary message
+- Error handling for invalid city names
+- API keys secured using `.env`
 
 ---
 
-## 🚀 Setup Instructions
+## 🔌 Backend APIs
+- `GET /api/location?city=`
+- `GET /api/weather/current?lat=&lon=`
+- `GET /api/weather/forecast?lat=&lon=`
 
-### Backend
+---
+
+## ⚙️ Setup Instructions
+
+### 1️⃣ Clone the repository
 ```bash
-cd backend
-npm install
-npm run dev
+git clone https://github.com/Rohan-0705/weather-information-app.git
+cd weather-information-app
