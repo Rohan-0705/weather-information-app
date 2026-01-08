@@ -20,6 +20,7 @@ function App() {
   const [forecast, setForecast] = useState([]);
 
 
+
   const handleSearch = async (city) => {
   try {
     setError("");
@@ -27,6 +28,9 @@ function App() {
     setWeather(null);
     setForecast([]);
     setHasSearched(true);
+
+    
+
 
     const [weatherRes, forecastRes] = await Promise.all([
       API.get(`/weather/current?city=${city}`),
@@ -49,6 +53,15 @@ function App() {
     setLoading(false);
   }
 };
+
+useEffect(() => {
+  const lastCity = localStorage.getItem("lastCity");
+
+  if (lastCity) {
+    handleSearch(lastCity);
+  }
+}, []);
+
 
 
   // Returning user
@@ -80,7 +93,8 @@ function App() {
           🌦️ Weather Information App
         </h1>
 
-        <SearchCity onSearch={handleSearch} />
+        <SearchCity onSearch={handleSearch} loading={loading} />
+
 
         {loading && (
   <div
@@ -116,7 +130,7 @@ function App() {
         )}
 
         {/* FIRST TIME USER EMPTY STATE */}
-        {!hasSearched && !loading && !error && (
+       {!hasSearched && !loading && !error && !weather && (
           <div style={{ textAlign: "center", marginTop: "40px", opacity: 0.85 }}>
             <h2>Search a city to start planning your trip</h2>
             <p>Get weather insights and travel recommendations instantly.</p>
@@ -133,10 +147,15 @@ function App() {
     }}
   >
     <WeatherSummary summary={weather.condition} />
-    <TravelSuitability weather={weather} />
-    <CurrentWeather data={weather} />
-    <TripPlanner />
-    <TravelNotes city={weather.city} />
+<TravelSuitability weather={weather} />
+
+{/* ✅ FORECAST GOES HERE */}
+<Forecast data={forecast} />
+
+<CurrentWeather data={weather} />
+<TripPlanner />
+<TravelNotes city={weather.city} />
+
   </div>
 )}
 
