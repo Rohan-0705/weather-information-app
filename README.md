@@ -1,45 +1,48 @@
-# 🌦️ Weather Information App (MERN + Open APIs)
+# 🌦️ Weather Information App (MERN)
 
-## 📌 Overview
-A MERN stack based Weather Information App that allows users to search for a city and view current weather conditions along with a 5–7 day forecast using OpenWeather APIs.
+A weather-based travel planning application built using **React** and **Node.js + Express**, powered by open weather APIs.
 
----
-
-## 🧰 Tech Stack
-- Frontend: React (Vite)
-- Backend: Node.js, Express
-- APIs: OpenWeather Geocoding API, OpenWeather Weather API
-- Styling: CSS
-- Database: ❌ Not used
-- Authentication: ❌ Not used
+This app helps users check real-time weather, forecast upcoming days, evaluate travel suitability, and plan trips with notes.
 
 ---
 
 ## 🚀 Features
-- Search weather by city name
-- Convert city name to latitude & longitude (backend)
-- Display current weather:
-  - Temperature (°C)
-  - Weather condition
-  - Humidity
-  - Wind speed
-- Display 5–7 day weather forecast
-- Weather summary message
-- Error handling for invalid city names
-- API keys secured using `.env`
+
+- 🔍 City-based weather search
+- 🌡️ Current weather (temperature, condition, humidity, wind)
+- 📅 7-day weather forecast
+- 🟢🟡🔴 Travel suitability indicator
+- 🧳 Trip planner with date range & risk analysis
+- 📝 City-wise travel notes (saved locally)
+- 💡 Clean UI with loading indicators & smooth animations
 
 ---
 
-## 🔌 Backend APIs
-- `GET /api/location?city=`
-- `GET /api/weather/current?lat=&lon=`
-- `GET /api/weather/forecast?lat=&lon=`
+## 🧰 Tech Stack
+
+### Frontend
+- React (Vite)
+- Axios
+- Inline CSS (no UI frameworks)
+
+### Backend
+- Node.js
+- Express.js
+- WeatherAPI (Current + Forecast)
+
+---
+
+## 🔌 APIs Used
+
+- **WeatherAPI**
+  - Current Weather API
+  - Forecast API (7 days)
 
 ---
 
 ## ⚙️ Setup Instructions
 
-### 1️⃣ Clone the repository
+### 1️⃣ Clone Repository
 ```bash
-git clone https://github.com/Rohan-0705/weather-information-app.git
-cd weather-information-app
+git clone <your-github-repo-link>
+cd weather-app

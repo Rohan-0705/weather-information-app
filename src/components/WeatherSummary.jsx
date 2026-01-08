@@ -4,10 +4,11 @@ function WeatherSummary({ summary }) {
   return (
     <div
       style={{
-        background: "#e3f2fd",
-        padding: "15px",
-        marginBottom: "20px",
-        borderRadius: "6px",
+        background: "#dff1ff",
+        padding: "10px 14px",
+        borderRadius: "8px",
+        fontSize: "14px",
+        marginBottom: "16px",
       }}
     >
       <strong>Weather Summary:</strong> {summary}
