@@ -1,5 +1,6 @@
 import axios from "axios";
 
+/* ===================== CURRENT WEATHER ===================== */
 export const getCurrentWeather = async (req, res) => {
   try {
     const { city } = req.query;
@@ -9,8 +10,7 @@ export const getCurrentWeather = async (req, res) => {
       {
         params: {
           key: process.env.WEATHER_API_KEY,
-          q: `${city},India`,
-
+          q: `${city},India`, // ✅ COUNTRY FIX
         },
       }
     );
@@ -31,7 +31,7 @@ export const getCurrentWeather = async (req, res) => {
   }
 };
 
-
+/* ===================== FORECAST ===================== */
 export const getForecast = async (req, res) => {
   try {
     const { city } = req.query;
@@ -41,18 +41,19 @@ export const getForecast = async (req, res) => {
       {
         params: {
           key: process.env.WEATHER_API_KEY,
-          q: city,
-          days: 3,
+          q: `${city},India`, // ✅ COUNTRY FIX (IMPORTANT)
+          days: 7,
         },
       }
     );
 
     res.json(response.data);
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Forecast unavailable" });
   }
 };
 
+/* ===================== HISTORICAL ===================== */
 export const getHistoricalWeather = async (req, res) => {
   try {
     const { city, date } = req.query;
@@ -62,7 +63,7 @@ export const getHistoricalWeather = async (req, res) => {
       {
         params: {
           key: process.env.WEATHER_API_KEY,
-          q: `${city},India`,
+          q: `${city},India`, // ✅ COUNTRY FIX
           dt: date,
         },
       }
