@@ -7,14 +7,21 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: "http://localhost:5173"
-}));
+/* ✅ CORS – allow frontend & testing */
+app.use(
+  cors({
+    origin: "*", // allow all origins (safe for now)
+    methods: ["GET", "POST"],
+  })
+);
 
 app.use(express.json());
 
 app.use("/api/weather", weatherRoutes);
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+/* ✅ Use Render-provided port */
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
