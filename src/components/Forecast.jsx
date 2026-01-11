@@ -1,46 +1,66 @@
-function Forecast({ forecast }) {
-  if (!forecast || forecast.length === 0) return null;
+function Forecast({ data }) {
+  if (!Array.isArray(data) || data.length === 0) return null;
 
   return (
-    <div style={{ marginTop: "24px" }}>
-      <h3 style={{ marginBottom: "12px" }}>7-Day Forecast</h3>
-
-      <div
+    <div style={{ marginBottom: "22px" }}>
+      <h3
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-          gap: "16px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          marginBottom: "10px",
         }}
       >
-        {forecast.map((day) => (
-          <div
-            key={day.date}
-            style={{
-              background: "#ffffff",
-              borderRadius: "12px",
-              padding: "12px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: "14px", marginBottom: "6px" }}>
-              {new Date(day.date).toDateString().slice(0, 10)}
-            </div>
+        📅 Forecast
+      </h3>
 
-            <img
-              src={`https:${day.icon}`}
-              alt={day.condition}
-              style={{ width: "48px" }}
-            />
+     <div
+  className="forecast-scroll"
+  style={{
+    display: "flex",
+    gap: "14px",
+    overflowX: "auto",
+    paddingBottom: "8px",
+  }}
+>
 
-            <div style={{ fontSize: "13px", margin: "6px 0" }}>
-              {day.condition}
-            </div>
+        {data.slice(0, 7).map((day, i) => {
+          const isRisky =
+            day.day.condition.text.toLowerCase().includes("rain") ||
+            day.day.maxtemp_c > 35;
 
-            <div style={{ fontSize: "14px", fontWeight: "bold" }}>
-              {day.maxTemp}° / {day.minTemp}°
+          return (
+            <div
+              key={i}
+              style={{
+                minWidth: "110px",
+                background: isRisky ? "#fff4e5" : "#ffffff",
+                borderRadius: "14px",
+                padding: "12px",
+                textAlign: "center",
+                boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+              }}
+            >
+              <div style={{ fontWeight: "600", marginBottom: "6px" }}>
+                {new Date(day.date).toLocaleDateString("en-US", {
+                  weekday: "short",
+                })}
+              </div>
+
+              <img
+                src={day.day.condition.icon}
+                alt=""
+                style={{ width: "42px", marginBottom: "6px" }}
+              />
+              
+
+              <div style={{ fontSize: "14px" }}>
+                {Math.round(day.day.mintemp_c)}° /{" "}
+                <strong>{Math.round(day.day.maxtemp_c)}°</strong>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

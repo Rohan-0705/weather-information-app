@@ -1,42 +1,42 @@
-function CurrentWeather({ data }) {
-  if (!data) return null;
+function CurrentWeather({ data, city, favorites, onAdd, onRemove }) {
+  const isFavorite = favorites.includes(city);
 
   return (
     <div style={{ marginTop: "24px" }}>
-      {/* Temperature */}
-      <div
-        style={{
-          fontSize: "56px",
-          fontWeight: "700",
-          lineHeight: "1",
-        }}
-      >
-        {data.temperature}°C
-      </div>
-
-      {/* Condition */}
-      <div
-        style={{
-          fontSize: "18px",
-          marginTop: "8px",
-          marginBottom: "16px",
-          opacity: 0.9,
-        }}
-      >
-        ☁️ {data.condition}
-      </div>
-
-      {/* Meta info */}
+      {/* City row */}
       <div
         style={{
           display: "flex",
-          gap: "24px",
-          fontSize: "15px",
-          opacity: 0.85,
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
-        <span>💧 {data.humidity}% humidity</span>
-        <span>💨 {data.windSpeed} km/h wind</span>
+        <h2 style={{ margin: 0, fontWeight: 700 }}>
+          {city} — {data.current.temp_c}°C
+        </h2>
+
+        <button
+          onClick={() => (isFavorite ? onRemove(city) : onAdd())}
+          style={{
+            background: "transparent",
+            border: "none",
+            fontSize: "26px",
+            cursor: "pointer",
+            color: isFavorite ? "#f5c518" : "#999",
+          }}
+          aria-label="toggle favorite"
+        >
+          {isFavorite ? "★" : "☆"}
+        </button>
+      </div>
+
+      <p style={{ margin: "8px 0", opacity: 0.8 }}>
+        {data.current.condition}
+      </p>
+
+      <div style={{ display: "flex", gap: "20px" }}>
+        <span>💧 {data.current.humidity}%</span>
+        <span>💨 {data.current.wind_kph} km/h</span>
       </div>
     </div>
   );

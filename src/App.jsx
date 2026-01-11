@@ -8,187 +8,216 @@ import TravelSuitability from "./components/TravelSuitability";
 import Forecast from "./components/Forecast";
 import TripPlanner from "./components/TripPlanner";
 import TravelNotes from "./components/TravelNotes";
-
+import WeatherSkeleton from "./components/WeatherSkeleton";
+import Favorites from "./components/Favorites";
+import { Toaster, toast } from "react-hot-toast";
 
 
 
 function App() {
   const [weather, setWeather] = useState(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
   const [forecast, setForecast] = useState([]);
+  const [city, setCity] = useState("");
+  const [favorites, setFavorites] = useState([]);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
+  // ---------------- SEARCH ----------------
+  const handleSearch = async (cityName) => {
+    try {
+      setCity(cityName);
+      localStorage.setItem("lastCity", cityName);
 
-  const handleSearch = async (city) => {
-  try {
-    setError("");
-    setLoading(true);
-    setWeather(null);
-    setForecast([]);
-    setHasSearched(true);
+      setLoading(true);
+      setError("");
+      setHasSearched(true);
 
-    
+      const [weatherRes, forecastRes] = await Promise.all([
+        API.get(`/weather/current?city=${cityName}`),
+        API.get(`/weather/forecast?city=${cityName}`),
+      ]);
 
-
-    const [weatherRes, forecastRes] = await Promise.all([
-      API.get(`/weather/current?city=${city}`),
-      API.get(`/weather/forecast?city=${city}`),
-    ]);
-
-    setWeather(weatherRes.data);
-    setForecast(forecastRes.data);
-
-  } catch (err) {
-    setWeather(null);
-    setForecast([]);
-
-    if (err.response?.status === 404) {
-      setError("Invalid city name. Please try again.");
-    } else {
-      setError("Weather service unavailable.");
+      setWeather(weatherRes.data);
+      setForecast(forecastRes.data.forecast.forecastday || []);
+    } catch {
+      setWeather(null);
+      setForecast([]);
+      setError("Invalid city name or service unavailable.");
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
+  };
+
+  // ---------------- LOAD FAVORITES ----------------
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("favorites")) || [];
+    setFavorites(saved);
+  }, []);
+
+  // ---------------- INITIAL LOAD ----------------
+  useEffect(() => {
+    const lastCity = localStorage.getItem("lastCity");
+    if (lastCity) {
+      handleSearch(lastCity);
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      handleSearch("Ujjain");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await API.get(
+            `/location/reverse?lat=${latitude}&lon=${longitude}`
+          );
+          handleSearch(res.data.city);
+        } catch {
+          handleSearch("Ujjain");
+        }
+      },
+      () => handleSearch("Ujjain")
+    );
+  }, []);
+
+  // ---------------- FAVORITES ----------------
+  const addFavorite = () => {
+    if (!city || favorites.includes(city)) return;
+    const updated = [...favorites, city];
+    setFavorites(updated);
+    localStorage.setItem("favorites", JSON.stringify(updated));
+  };
+
+ const removeFavorite = (cityName) => {
+  toast((t) => (
+    <span>
+      Remove <b>{cityName}</b> from favorites?
+      <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
+        <button
+          onClick={() => {
+            const updated = favorites.filter((c) => c !== cityName);
+            setFavorites(updated);
+            localStorage.setItem("favorites", JSON.stringify(updated));
+            toast.dismiss(t.id);
+          }}
+          style={{
+            padding: "6px 10px",
+            background: "#ef4444",
+            color: "#fff",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          Yes
+        </button>
+
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          style={{
+            padding: "6px 10px",
+            background: "#e5e7eb",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </span>
+  ), {
+    duration: 5000,
+  });
 };
 
-useEffect(() => {
-  const lastCity = localStorage.getItem("lastCity");
 
-  if (lastCity) {
-    handleSearch(lastCity);
-  }
-}, []);
+  const selectFavorite = (cityName) => {
+    handleSearch(cityName);
+  };
 
-
-
-  // Returning user
-  // useEffect(() => {
-  //   const lastCity = localStorage.getItem("lastCity");
-  //   if (lastCity) {
-  //     handleSearch(lastCity);
-  //   }
-  // }, []);
-
+  // ---------------- UI ----------------
   return (
     <div
       style={{
         minHeight: "100vh",
         background: "linear-gradient(to right, #74ebd5, #acb6e5)",
-        padding: "32px",
+        padding: "16px",
       }}
     >
+      <Toaster
+  position="bottom-center"
+  toastOptions={{
+    style: {
+      borderRadius: "12px",
+      background: "#333",
+      color: "#fff",
+    },
+  }}
+/>
+
       <div
         style={{
           maxWidth: "900px",
           margin: "0 auto",
           display: "flex",
           flexDirection: "column",
-          gap: "28px",
+          gap: "24px",
         }}
       >
-        <h1 style={{ textAlign: "center" }}>
-          🌦️ Weather Information App
-        </h1>
+        <h1 style={{ textAlign: "center" }}>🌦️ Weather Information App</h1>
 
         <SearchCity onSearch={handleSearch} loading={loading} />
 
+        {favorites.length > 0 && (
+          <Favorites
+            favorites={favorites}
+            onSelect={selectFavorite}
+            onRemove={removeFavorite}
+          />
+        )}
 
-        {loading && (
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      marginTop: "40px",
-      gap: "12px",
-    }}
-  >
-    <div
-      style={{
-        width: "46px",
-        height: "46px",
-        border: "5px solid #e0e0e0",
-        borderTop: "5px solid #0d6efd",
-        borderRadius: "50%",
-        animation: "spin 1s linear infinite",
-      }}
-    />
-    <p style={{ fontSize: "16px", opacity: 0.8 }}>
-      Fetching weather data...
-    </p>
-  </div>
-)}
+        {loading && <WeatherSkeleton />}
+        {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
 
-
-        {error && (
-          <p style={{ color: "red", textAlign: "center" }}>
-            {error}
+        {!hasSearched && !loading && (
+          <p style={{ textAlign: "center" }}>
+            Search a city to start planning your trip
           </p>
         )}
 
-        {/* FIRST TIME USER EMPTY STATE */}
-       {!hasSearched && !loading && !error && !weather && (
-          <div style={{ textAlign: "center", marginTop: "40px", opacity: 0.85 }}>
-            <h2>Search a city to start planning your trip</h2>
-            <p>Get weather insights and travel recommendations instantly.</p>
-          </div>
-        )}
-
-        {/* WEATHER DATA */}
         {weather && (
-  <div
-    style={{
-      background: "#e9f6ff",
-      padding: "24px",
-      borderRadius: "14px",
-    }}
-  >
-    <WeatherSummary summary={weather.condition} />
-<TravelSuitability weather={weather} />
+  <div className="weather-card">
+    <CurrentWeather
+      data={weather}
+      city={city}
+      favorites={favorites}
+      onAdd={addFavorite}
+      onRemove={removeFavorite}
+    />
 
-{/* ✅ FORECAST GOES HERE */}
-<Forecast data={forecast} />
+    <TravelSuitability weather={weather} city={city} />
 
-<CurrentWeather data={weather} />
-<TripPlanner />
-<TravelNotes city={weather.city} />
+    <Forecast data={forecast} />
 
+    <TripPlanner
+      forecast={forecast}
+      city={city}
+      weatherAvailable={!!weather}
+    />
+
+    <TravelNotes city={city} />
   </div>
 )}
-
 
       </div>
     </div>
   );
 }
-
-const style = document.createElement("style");
-style.innerHTML = `
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-`;
-document.head.appendChild(style);
-
-const fadeStyle = document.createElement("style");
-fadeStyle.innerHTML = `
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-`;
-document.head.appendChild(fadeStyle);
-
-
 
 export default App;

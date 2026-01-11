@@ -1,18 +1,16 @@
 function WeatherSummary({ summary }) {
   if (!summary) return null;
 
+  // summary can be object or string
+  const text =
+    typeof summary === "string"
+      ? summary
+      : summary.text;
+
   return (
-    <div
-      style={{
-        background: "#dff1ff",
-        padding: "10px 14px",
-        borderRadius: "8px",
-        fontSize: "14px",
-        marginBottom: "16px",
-      }}
-    >
-      <strong>Weather Summary:</strong> {summary}
-    </div>
+    <p style={{ fontSize: "18px", opacity: 0.8 }}>
+      ☁️ {text}
+    </p>
   );
 }
 

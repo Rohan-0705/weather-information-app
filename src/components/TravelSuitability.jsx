@@ -1,63 +1,54 @@
-function TravelSuitability({ weather }) {
+function TravelSuitability({ weather, city }) {
   if (!weather) return null;
 
-  const { temperature, condition } = weather;
+  const { temp_c, humidity, wind_kph, condition } = weather.current;
 
-  let status = "Good for travel";
-  let message = "Pleasant weather conditions.";
+  let status = "GOOD FOR TRAVEL";
   let color = "#22c55e"; // green
+  let emoji = "🟢";
+  let reason = "Comfortable weather conditions";
 
-  const conditionText = condition.toLowerCase();
-
-  // ❄️ Cold
-  if (temperature < 5) {
-    status = "Not recommended";
-    message = "Very cold weather. Travel may be uncomfortable.";
-    color = "#ef4444"; // red
-  }
-
-  // 🔥 Very hot
-  else if (temperature > 35) {
-    status = "Not recommended";
-    message = "Extreme heat. Avoid outdoor travel.";
-    color = "#ef4444";
-  }
-
-  // 🌧️ Rain / Storm
-  else if (
-    conditionText.includes("rain") ||
-    conditionText.includes("storm") ||
-    conditionText.includes("thunder")
+  if (
+    condition.toLowerCase().includes("rain") ||
+    humidity > 80 ||
+    wind_kph > 30
   ) {
-    status = "Acceptable";
-    message = "Rain expected. Plan with caution.";
-    color = "#f59e0b"; // yellow
+    status = "NOT RECOMMENDED";
+    color = "#ef4444"; // red
+    emoji = "🔴";
+    reason = "Rain or harsh weather conditions";
+  } else if (temp_c > 32 || humidity > 65) {
+    status = "ACCEPTABLE";
+    color = "#f59e0b"; // amber
+    emoji = "🟡";
+    reason = "Warm or slightly humid weather";
   }
-
-  // 🌥️ Cloudy
-  else if (
-  conditionText.includes("cloud") ||
-  conditionText.includes("overcast")
-) {
-  status = "Acceptable";
-  message = "Cloudy or overcast weather, generally okay for travel.";
-  color = "#f59e0b";
-}
-
 
   return (
     <div
       style={{
-        borderLeft: `6px solid ${color}`,
-        background: "#fff",
-        padding: "14px 16px",
-        borderRadius: "10px",
-        margin: "16px 0",
+        marginTop: "16px",
+        marginBottom: "22px",
+        padding: "18px",
+        borderRadius: "16px",
+        background: color,
+        color: "#fff",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
       }}
     >
-      <strong>{status}</strong>
-      <div style={{ fontSize: "14px", marginTop: "4px", opacity: 0.85 }}>
-        {message}
+      <div
+        style={{
+          fontSize: "18px",
+          fontWeight: 700,
+          letterSpacing: "0.4px",
+          marginBottom: "4px",
+        }}
+      >
+        {emoji} {status}
+      </div>
+
+      <div style={{ fontSize: "14px", opacity: 0.95 }}>
+        {reason}
       </div>
     </div>
   );

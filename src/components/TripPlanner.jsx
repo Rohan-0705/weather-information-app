@@ -1,43 +1,91 @@
 import { useState } from "react";
+import API from "../api";
+import { toast } from "react-hot-toast";
 
-function TripPlanner() {
+
+function TripPlanner({ forecast, city, weatherAvailable }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [days, setDays] = useState([]);
 
-  // Summary logic
-  const safeDays = days.filter((d) => d.risk === "safe").length;
-  const riskyDays = days.filter((d) => d.risk === "risky").length;
+  const handleCheck = async () => {
+    if (!startDate || !endDate || !city) {
+      toast.error("Please search a city and select both dates");
 
-  let summary = "";
-  if (days.length > 0) {
-    if (safeDays > riskyDays) {
-      summary = "✅ This trip looks good overall. Mostly safe days.";
-    } else if (safeDays === riskyDays) {
-      summary = "⚠️ Mixed weather. Plan carefully.";
-    } else {
-      summary = "❌ High risk trip. Consider rescheduling.";
+      return;
     }
-  }
-
-  const handleCheck = () => {
-    if (!startDate || !endDate) return;
 
     const start = new Date(startDate);
     const end = new Date(endDate);
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // FREE PLAN → 3 DAY FORECAST
+    const maxForecastDate = new Date(today);
+    maxForecastDate.setDate(today.getDate() + 6); // today + next 2 days
+
     const result = [];
-    const current = new Date(start);
+    let current = new Date(start);
 
     while (current <= end) {
-      const day = current.getDay(); // 0 = Sun, 6 = Sat
+      const dateStr = current.toISOString().split("T")[0];
 
-      const risk = day === 0 || day === 6 ? "risky" : "safe";
+      // 🔹 PAST → HISTORY
+      if (current < today) {
+        try {
+          const res = await API.get(
+            `/weather/history?city=${city}&date=${dateStr}`
+          );
 
-      result.push({
-        date: current.toDateString(),
-        risk,
-      });
+          const isRisky =
+            res.data.condition.toLowerCase().includes("rain") ||
+            res.data.maxTemp > 35;
+
+          result.push({
+            date: new Date(dateStr).toDateString(),
+            risk: isRisky ? "risky" : "safe",
+          });
+        } catch {
+          result.push({
+            date: new Date(dateStr).toDateString(),
+            risk: "unknown",
+          });
+        }
+      }
+
+      // 🔹 TODAY + NEXT 2 DAYS → FORECAST (REAL)
+      else if (current <= maxForecastDate) {
+        const forecastDay = forecast.find(
+          (f) => f.date === dateStr
+        );
+
+        if (forecastDay) {
+          const isRisky =
+            forecastDay.day.condition.text
+              .toLowerCase()
+              .includes("rain") ||
+            forecastDay.day.maxtemp_c > 35;
+
+          result.push({
+            date: new Date(dateStr).toDateString(),
+            risk: isRisky ? "risky" : "safe",
+          });
+        } else {
+          result.push({
+            date: new Date(dateStr).toDateString(),
+            risk: "forecast-unavailable",
+          });
+        }
+      }
+
+      // 🔹 BEYOND 3 DAYS → UNAVAILABLE
+      else {
+        result.push({
+          date: new Date(dateStr).toDateString(),
+          risk: "forecast-unavailable",
+        });
+      }
 
       current.setDate(current.getDate() + 1);
     }
@@ -46,58 +94,89 @@ function TripPlanner() {
   };
 
   return (
-    <div style={{ marginTop: "28px" }}>
-      <h3 style={{ marginBottom: "12px" }}>🧳 Trip Planner</h3>
+    <div style={{ marginTop: "20px", opacity: weatherAvailable ? 1 : 0.5 }}>
+      <h3
+  style={{
+    fontSize: "16px",
+    fontWeight: 600,
+    marginBottom: "8px",
+    opacity: 0.85,
+  }}
+>
+  Trip planner
+</h3>
 
-      {/* Date pickers */}
-      <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+
+      {!weatherAvailable && (
+        <p style={{ fontSize: "14px", color: "#666", marginBottom: "10px" }}>
+          Search a city to plan your trip
+        </p>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "10px",
+          flexWrap: "wrap",        // ✅ allow wrapping on mobile
+        }}
+      >
+
         <input
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
+          style={{ flex: "1 1 140px" }}   // ✅ responsive
         />
+
         <input
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
+          style={{ flex: "1 1 140px" }}   // ✅ responsive
         />
-        <button onClick={handleCheck}>Check Weather</button>
+
+
+        <button
+  onClick={handleCheck}
+  disabled={!weatherAvailable}
+  style={{
+    flex: "1 1 100%",                // ✅ full width on mobile
+    padding: "12px",
+    borderRadius: "12px",
+    border: "none",
+    background: weatherAvailable ? "#1976d2" : "#cfd8dc",
+    color: "#fff",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: weatherAvailable ? "pointer" : "not-allowed",
+    opacity: weatherAvailable ? 1 : 0.7,
+  }}
+>
+  Check Weather
+</button>
+
       </div>
 
-      {/* Results */}
-      {days.length > 0 && (
-        <div style={{ marginTop: "12px" }}>
-          {days.map((d, index) => (
-            <div
-              key={index}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "6px",
-                marginBottom: "6px",
-                background:
-                  d.risk === "safe" ? "#e7f8ee" : "#fff4e5",
-              }}
-            >
-              {d.date} — {d.risk === "safe" ? "🟢 Safe" : "🟡 Risky"}
-            </div>
-          ))}
-        </div>
+      {weatherAvailable && (
+        <p style={{ fontSize: "13px", opacity: 0.7 }}>
+          Forecast available for next 3 days (free plan)
+        </p>
       )}
 
-      {/* Summary */}
-      {days.length > 0 && (
-        <div
-          style={{
-            marginTop: "16px",
-            padding: "12px",
-            borderRadius: "8px",
-            background: "#eef6ff",
-            fontWeight: "500",
-          }}
-        >
-          {summary}
+      {days.map((d, i) => (
+        <div key={i} style={{ marginTop: "8px" }}>
+          {d.date} —{" "}
+          {d.risk === "safe" && "🟢 Safe"}
+          {d.risk === "risky" && "🟡 Risky"}
+          {d.risk === "unknown" && "⚠️ No data"}
+          {d.risk === "forecast-unavailable" && (
+            <span style={{ color: "#6c757d" }}>
+              ℹ️ Weather data not available
+            </span>
+          )}
         </div>
-      )}
+      ))}
     </div>
   );
 }

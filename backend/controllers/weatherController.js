@@ -4,42 +4,30 @@ export const getCurrentWeather = async (req, res) => {
   try {
     const { city } = req.query;
 
-    if (!city || city.trim().length < 2) {
-      return res.status(400).json({ error: "Invalid city name" });
-    }
-
     const response = await axios.get(
       "https://api.weatherapi.com/v1/current.json",
       {
         params: {
           key: process.env.WEATHER_API_KEY,
-          q: `${city},India`, // ✅ force India
-          aqi: "no",
+          q: `${city},India`,
+
         },
       }
     );
 
-    const location = response.data.location;
-
-    // ✅ country validation
-    if (location.country !== "India") {
-      return res.status(404).json({ error: "City not found in India" });
-    }
+    const data = response.data;
 
     res.json({
-  temperature: response.data.current.temp_c,
-  condition: response.data.current.condition.text,
-  humidity: response.data.current.humidity,
-  windSpeed: response.data.current.wind_kph,
-  city: response.data.location.name,
-  country: response.data.location.country,
-});
-
-  } catch (error) {
-    if (error.response?.status === 400) {
-      return res.status(404).json({ error: "Invalid city name" });
-    }
-    res.status(500).json({ error: "Weather service unavailable" });
+      city: data.location.name,
+      current: {
+        temp_c: data.current.temp_c,
+        humidity: data.current.humidity,
+        wind_kph: data.current.wind_kph,
+        condition: data.current.condition.text,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch weather" });
   }
 };
 
@@ -53,24 +41,43 @@ export const getForecast = async (req, res) => {
       {
         params: {
           key: process.env.WEATHER_API_KEY,
-          q: `${city},India`,
-          days: 7,
-          aqi: "no",
-          alerts: "no",
+          q: city,
+          days: 3,
         },
       }
     );
 
-    const forecast = response.data.forecast.forecastday.map((day) => ({
-      date: day.date,
-      minTemp: day.day.mintemp_c,
-      maxTemp: day.day.maxtemp_c,
-      condition: day.day.condition.text,
-      icon: day.day.condition.icon,
-    }));
+    res.json(response.data);
+  } catch {
+    res.status(500).json({ error: "Forecast unavailable" });
+  }
+};
 
-    res.json(forecast);
-  } catch (error) {
-    res.status(500).json({ error: "Forecast fetch failed" });
+export const getHistoricalWeather = async (req, res) => {
+  try {
+    const { city, date } = req.query;
+
+    const response = await axios.get(
+      "https://api.weatherapi.com/v1/history.json",
+      {
+        params: {
+          key: process.env.WEATHER_API_KEY,
+          q: `${city},India`,
+          dt: date,
+        },
+      }
+    );
+
+    const day = response.data.forecast.forecastday[0].day;
+
+    res.json({
+      date,
+      condition: day.condition.text,
+      maxTemp: day.maxtemp_c,
+      minTemp: day.mintemp_c,
+      rainChance: day.daily_chance_of_rain,
+    });
+  } catch {
+    res.status(500).json({ error: "Historical weather unavailable" });
   }
 };
